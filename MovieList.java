@@ -52,9 +52,9 @@ public class MovieList {
             }
             br.close();
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("A fájl nem található");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Hiba a fájl írásakor");
         }
     }
 
@@ -66,7 +66,7 @@ public class MovieList {
             }
             writer.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Hiba a fájl írásakor");
         }
     }
 
