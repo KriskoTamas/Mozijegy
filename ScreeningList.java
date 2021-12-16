@@ -69,9 +69,9 @@ public class ScreeningList {
             }
             br.close();
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            MyLogger.LogWriteOut("A fájl nem található (" + Main.fileSeats + ")");
         } catch (IOException e) {
-            e.printStackTrace();
+            MyLogger.LogWriteOut("Hiba a fájl olvasásakor (" + Main.fileSeats + ")");
         }
     }
 
@@ -81,14 +81,16 @@ public class ScreeningList {
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(Main.fileScreenings), "UTF-8"));
             String row;
             while((row = br.readLine()) != null){
+                if(row.equals(""))
+                    continue;
                 String[] data = row.split(";");
                 Main.screeningList.add(new Screening(Integer.parseInt(data[0]), Integer.parseInt(data[1]), data[2], MovieList.getMovieById(Integer.parseInt(data[3]))));
             }
             br.close();
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            MyLogger.LogWriteOut("A fájl nem található (" + Main.fileScreenings + ")");
         } catch (IOException e) {
-            e.printStackTrace();
+            MyLogger.LogWriteOut("Hiba a fájl olvasásakor (" + Main.fileScreenings + ")");
         }
     }
 
@@ -99,8 +101,10 @@ public class ScreeningList {
                 writer.write(s.getId() + ";" + s.getRoomNumber() + ";" + s.getScreeningTime() + ";" + s.getMovie().getId() + System.lineSeparator());
             }
             writer.close();
+            System.out.println("A módosítások rögzítésre kerültek.");
         } catch (IOException e) {
-            e.printStackTrace();
+            MyLogger.LogWriteOut("Hiba a fájl írásakor (" + Main.fileScreenings + ")");
+            System.out.println("A módosítások rögzítése sikertelen.");
         }
     }
 

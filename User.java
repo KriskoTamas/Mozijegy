@@ -1,15 +1,11 @@
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -26,16 +22,17 @@ public class User {
     private String name, password;
     private Privilege privilege;
     private Date birthdate;
-    private static ArrayList<Reservation> reservations = new ArrayList<Reservation>();
+    protected static ArrayList<Reservation> reservations = new ArrayList<Reservation>();
 
     public User(int id, String name, String password, String birthdate, Privilege privilege){
         this.id = id;
         this.name = name;
         this.password = password;
         try {
-            this.birthdate = new SimpleDateFormat("yyyy-MM-dd").parse(birthdate);
+            if(!birthdate.equals(""))
+                this.birthdate = new SimpleDateFormat("yyyy-MM-dd").parse(birthdate);
         } catch (ParseException e) {
-            // e.printStackTrace();
+            e.printStackTrace();
         }
 
         this.privilege = privilege;
@@ -65,6 +62,10 @@ public class User {
         return reservations;
     }
 
+    public static void setReservations(ArrayList<Reservation> list){
+        reservations = list;
+    }
+
     public static int getReservationIndexById(int id){
         for(int i = 0; i < reservations.size(); i++)
             if(reservations.get(i).getId() == id)
@@ -82,17 +83,15 @@ public class User {
     }
 
     public static void addReservation(){
-        // System.out.println("max id: " + getReservationsMaxId());
         System.out.println("\n#### Új foglalás ####");
         MovieList.printMovies();
         System.out.print("- Válasszon egy filmet: ");
         int opt = Main.consoleReadInt(true);
-
+        
         if(MovieList.getMovieById(opt).getRating() > Main.diffInYears(Main.loggedUser.getBirthdate(), Calendar.getInstance().getTime())){
             System.out.println("A felhasználó életkora nem felel meg a korhatár besorolásnak");
             return;
         }
-
         System.out.println("\n#### Filmhez tartozó vetítések ####");
         ArrayList<Screening> list = ScreeningList.getScreeningsById(opt);
         if(list.size() == 0){
@@ -122,8 +121,7 @@ public class User {
         }
         Reservation r = new Reservation(Main.loggedUser.getId(), getReservationsMaxId() + 1, seats, screening);
         reservations.add(r);
-        System.out.println("A foglalás sikeresen elmentve.");
-        writeReservations();
+        UserList.writeReservations();
     }
 
     public static void editReservation(){
@@ -166,7 +164,7 @@ public class User {
         }
         reservations.set(getReservationIndexById(id), new Reservation(original.getUserId(), original.getId(), seats.isEmpty() ? original.getSeats() : seats, screening));
         System.out.println("A foglalás sikeresen elmentve.");
-        writeReservations();
+        UserList.writeReservations();
     }
 
     public static void deleteReservation(){
@@ -174,7 +172,7 @@ public class User {
         System.out.print("Törölni kívánt foglalás azonosítója: ");
         int id = Main.consoleReadInt(true);
         reservations.remove(getReservationIndexById(id));
-        writeReservations();
+        UserList.writeReservations();
     }
 
     public static void printReservations(){
@@ -192,49 +190,14 @@ public class User {
         }
     }
 
-    public static void readReservations(){
-        reservations.clear();
-        try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(Main.fileReservations), "UTF-8"));
-            String row;
-            while((row = br.readLine()) != null){
-                String[] data = row.split(";");
-                String[] seats = data[2].split(",");
-                reservations.add(new Reservation(Integer.parseInt(data[0]), Integer.parseInt(data[1]), new ArrayList<String>(Arrays.asList(seats)), ScreeningList.getScreeningById(Integer.parseInt(data[3]))));
-            }
-            br.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void writeReservations(){
-        try {
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(Main.fileReservations), "UTF-8"));
-            for(Reservation r : reservations){
-                writer.write(Main.loggedUser.getId() + ";" + r.getId() + ";");
-                for(int i = 0; i < r.getSeats().size(); i++){
-                    writer.write(r.getSeats().get(i));
-                    if(i < r.getSeats().size() - 1)
-                        writer.write(",");
-                }
-                writer.write(";" + r.getScreening().getId() + System.lineSeparator());
-            }
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void checkForAccess(String name, String password){
+    public static boolean checkForAccess(String name, String password){
         for(User u : Main.userList){
             if(u.getName().equals(name) && u.getPassword().equals(Main.md5(password))){
                 Main.loggedUser = u;
-                break;
+                return true;
             }
         }
+        return false;
     }
 
     public static void readUsers() {
@@ -243,6 +206,8 @@ public class User {
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(Main.fileUsers), "UTF-8"));
             String row;
             while((row = br.readLine()) != null){
+                if(row.equals(""))
+                    continue;
                 String[] data = row.split(";");
                 Main.userList.add(new User(Integer.parseInt(data[0]), data[1], data[2], data[3], Privilege.valueOf(data[4])));
             }

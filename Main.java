@@ -1,10 +1,7 @@
 import java.math.BigInteger;
 import java.security.MessageDigest;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -31,16 +28,25 @@ public class Main {
 
         showInitialMenu();
 
-        showLogin();
         if(loggedUser != null){
             System.out.println("Sikeres bejelentkezés!");
             MovieList.readMovies();
             ScreeningList.readScreenings();
-            User.readReservations();
+            UserList.readReservations();
             printMenu();
         }
         else{
+            MyLogger.LogWriteOut("Sikertelen bejelentkezés...");
             System.out.println("Sikertelen bejelentkezés...");
+            boolean logged = false;
+            while(!logged){
+                logged = showLogin();
+            }
+            System.out.println("Sikeres bejelentkezés!");
+            MovieList.readMovies();
+            ScreeningList.readScreenings();
+            UserList.readReservations();
+            printMenu();
         }
         sc.close();
 
@@ -51,27 +57,31 @@ public class Main {
         System.out.println("1. Belépés vendégként");
         System.out.println("2. Bejelentkezés");
         System.out.println("3. Regisztráció");
+        System.out.print("Menüpont: ");
         int opt = consoleReadInt(true, 1, 3);
         switch(opt){
             case 1:
-                
+                loggedUser = new User(0, "Vendeg", "", "", User.Privilege.Guest);
+                printMenu();
             break;
             case 2:
-
+                showLogin();
             break;
             case 3:
-
+                Guest.registerUser();
+                showLogin();
             break;
         }
     }
 
-    public static void showLogin(){
+    public static boolean showLogin(){
+        System.out.println();
         System.out.println("#### Jelentkezzen be ####");
         System.out.print("Felhasználónév: ");
         String name = consoleRead();
         System.out.print("Jelszó: ");
         String password = consoleRead();
-        User.checkForAccess(name, password);
+        return User.checkForAccess(name, password);
     }
 
     public static void printMenu(){
@@ -119,10 +129,8 @@ public class Main {
                         printMenu();
                     break;
                 }
-            } catch(InputMismatchException e){
-                e.printStackTrace();
             } catch (Exception e) {
-                e.printStackTrace();
+                MyLogger.LogWriteOut("Érvénytelen menüpont megadása");
             }
         }
         else if(loggedUser.getPrivilege() == User.Privilege.Manager){
@@ -145,13 +153,11 @@ public class Main {
                         printMenu();
                     break;
                 }
-            } catch(InputMismatchException e){
-                e.printStackTrace();
             } catch (Exception e) {
-                e.printStackTrace();
+                MyLogger.LogWriteOut("Érvénytelen menüpont megadása");
             }
         }
-        else{
+        else if(loggedUser.getPrivilege() == User.Privilege.User){
             System.out.println();
             System.out.println("1. Filmek listázása");
             System.out.println("2. Foglalások listázása");
@@ -185,18 +191,34 @@ public class Main {
                     printMenu();
                 break;
                 }
-            } catch(InputMismatchException e){
-                e.printStackTrace();
             } catch (Exception e) {
-                e.printStackTrace();
+                MyLogger.LogWriteOut("Érvénytelen menüpont megadása");
+            }
+        }
+        else{
+            System.out.println();
+            System.out.println("1. Filmek listázása");
+            System.out.println("* - Kilépés");
+            System.out.print("Menüpont: ");
+            try {
+                int opt = consoleReadInt(true, 1, 1);
+                switch(opt){
+                    case 1:
+                    MovieList.readMovies();
+                    MovieList.printMovies();
+                    printMenu();
+                    break;
+                }
+            } catch(Exception e){
+                MyLogger.LogWriteOut("Érvénytelen menüpont megadása");
             }
         }
     }
 
     public static int diffInYears(Date date1, Date date2){
-        LocalDate ld1 = LocalDate.of(date1.getYear(), date1.getMonth(), date1.getDay());
-        LocalDate ld2 = LocalDate.of(date2.getYear(), date2.getMonth(), date2.getDay());
-        return (int) ChronoUnit.YEARS.between(ld1, ld2);
+        long timeDiff = date2.getTime() - date1.getTime();
+        long yearsDiff = (timeDiff / (1000l * 60 * 60 * 24 * 365));
+        return (int) yearsDiff;
     }
 
     public static int consoleReadInt(boolean strict, int... bounds){
@@ -211,7 +233,7 @@ public class Main {
                 throw new Exception();
         }
         catch(Exception e){
-            System.out.print("Próbáld meg újra: ");
+            System.out.print("Próbálja meg újra: ");
             return consoleReadInt(strict, bounds);
         }
         return num;
@@ -241,7 +263,7 @@ public class Main {
                     throw new Exception();
         }
         catch(Exception e){
-            System.out.print("Próbáld meg újra: ");
+            System.out.print("Próbálja meg újra: ");
             return consoleReadSeat(screeningId);
         }
         return str;

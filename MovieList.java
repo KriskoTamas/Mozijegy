@@ -47,14 +47,16 @@ public class MovieList {
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(Main.fileMovies), "UTF-8"));
             String row;
             while((row = br.readLine()) != null){
+                if(row.equals(""))
+                    continue;
                 String[] data = row.split(";");
                 Main.movieList.add(new Movie(Integer.parseInt(data[0]), data[1], Integer.parseInt(data[2]), data[3], data[4]));
             }
             br.close();
         } catch (FileNotFoundException e) {
-            System.out.println("A fájl nem található");
+            MyLogger.LogWriteOut("A fájl nem található (" + Main.fileMovies + ")");
         } catch (IOException e) {
-            System.out.println("Hiba a fájl írásakor");
+            MyLogger.LogWriteOut("Hiba a fájl olvasásakor (" + Main.fileMovies + ")");
         }
     }
 
@@ -65,8 +67,10 @@ public class MovieList {
                 writer.write(m.getId() + ";" + m.getTitle() + ";" + m.getRating() + ";" + m.getSubtitle() + ";" + m.getDubbing() + System.lineSeparator());
             }
             writer.close();
+            System.out.println("A módosítások rögzítésre kerültek.");
         } catch (IOException e) {
-            System.out.println("Hiba a fájl írásakor");
+            MyLogger.LogWriteOut("Hiba a fájl írásakor (" + Main.fileMovies + ")");
+            System.out.println("A módosítások rögzítése sikertelen.");
         }
     }
 

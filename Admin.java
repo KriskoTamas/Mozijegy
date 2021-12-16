@@ -28,10 +28,9 @@ public class Admin {
         String subtitle = Main.consoleRead();
         System.out.print("Szinkron nyelve: ");
         String dubbing = Main.consoleRead();
-        Movie original = Main.movieList.get(id);
+        Movie original = Main.movieList.get(MovieList.getMovieIndexById(id));
         Main.movieList.set(MovieList.getMovieIndexById(id), new Movie(original.getId(), title.isEmpty() ? original.getTitle() : title, rating == -1 ? original.getRating() : rating, subtitle.isEmpty() ? original.getSubtitle() : subtitle, dubbing.isEmpty() ? original.getDubbing() : dubbing));
         MovieList.writeMovies();
-        System.out.println("A kiválasztott film szerkesztésre került.");
     }
 
     public static void deleteMovie(){
@@ -40,7 +39,6 @@ public class Admin {
         int id = Main.consoleReadInt(true);
         Main.movieList.remove(MovieList.getMovieIndexById(id));
         MovieList.writeMovies();
-        System.out.println("A kiválasztott film törlésre került.");
     }
 
     public static void addScreening(){
@@ -56,7 +54,6 @@ public class Admin {
         int id = Main.consoleReadInt(true);
         Main.screeningList.add(new Screening(ScreeningList.getScreeningsMaxId() + 1, room, screeningTime, MovieList.getMovieById(id)));
         ScreeningList.writeScreenings();
-        System.out.println("Vetítés hozzáadva.");
     }
 
     public static void editScreening(){
@@ -76,7 +73,6 @@ public class Admin {
         int movieId = Main.consoleReadInt(false);
         Main.screeningList.set(ScreeningList.getScreeningIndexById(id), new Screening(original.getId(), room == -1 ? original.getRoomNumber() : room, screeningTime.isEmpty() ? original.getScreeningTime() : screeningTime, movieId == -1 ? original.getMovie() : MovieList.getMovieById(movieId)));
         ScreeningList.writeScreenings();
-        System.out.println("A kiválasztott vetítés szerkesztésre került.");
     }
 
     public static void deleteScreening(){
@@ -85,7 +81,6 @@ public class Admin {
         int id = Main.consoleReadInt(true);
         Main.screeningList.remove(ScreeningList.getScreeningById(id));
         ScreeningList.writeScreenings();
-        System.out.println("A kiválasztott vetítés törlésre került.");
     }
 
 }

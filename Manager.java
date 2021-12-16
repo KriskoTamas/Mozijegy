@@ -14,7 +14,7 @@ public class Manager {
             System.out.println("A megadott felhasználó nem létezik.");
         }
         else{
-            User.readReservations();
+            UserList.readReservations();
             ArrayList<Reservation> reservations = User.getReservations();
             // System.out.println("size: " + reservations.size());
             System.out.println("Felhasználó foglalásai: ");
